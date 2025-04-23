@@ -125,6 +125,11 @@ public record FormlyFieldProps
     [JsonPropertyName("click")]         public string? OnClick { get; init; }
 
     /// <summary>
+    /// Internationalization options for the field. Contains translation keys for field properties.
+    /// </summary>
+    [JsonPropertyName("i18n")]          public FormlyI18nOptions? I18n { get; init; }
+
+    /// <summary>
     /// Additional properties that can be used to extend the field configuration.
     /// </summary>
     [JsonExtensionData]

@@ -350,6 +350,111 @@ public class FieldBuilder<TModel, TProp>
     }
 
     /// <summary>
+    /// Sets a translation key for the field label. The key will be resolved on the client side.
+    /// </summary>
+    /// <param name="key">The translation key</param>
+    /// <returns>This builder instance for method chaining</returns>
+    public FieldBuilder<TModel, TProp> LabelKey(string key)
+    {
+        var to = EnsureTemplateOptions();
+        var i18n = EnsureI18nOptions(to);
+        i18n = i18n with { LabelKey = key };
+        to = to with { I18n = i18n };
+        _c = _c with { Props = to };
+        return this;
+    }
+
+    /// <summary>
+    /// Sets a translation key for the field placeholder. The key will be resolved on the client side.
+    /// </summary>
+    /// <param name="key">The translation key</param>
+    /// <returns>This builder instance for method chaining</returns>
+    public FieldBuilder<TModel, TProp> PlaceholderKey(string key)
+    {
+        var to = EnsureTemplateOptions();
+        var i18n = EnsureI18nOptions(to);
+        i18n = i18n with { PlaceholderKey = key };
+        to = to with { I18n = i18n };
+        _c = _c with { Props = to };
+        return this;
+    }
+
+    /// <summary>
+    /// Sets a translation key for the field description. The key will be resolved on the client side.
+    /// </summary>
+    /// <param name="key">The translation key</param>
+    /// <returns>This builder instance for method chaining</returns>
+    public FieldBuilder<TModel, TProp> DescriptionKey(string key)
+    {
+        var to = EnsureTemplateOptions();
+        var i18n = EnsureI18nOptions(to);
+        i18n = i18n with { DescriptionKey = key };
+        to = to with { I18n = i18n };
+        _c = _c with { Props = to };
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the locale for this specific field. Can be used for field-specific locale settings.
+    /// </summary>
+    /// <param name="locale">The locale code (e.g., "en-US", "fr-FR")</param>
+    /// <returns>This builder instance for method chaining</returns>
+    public FieldBuilder<TModel, TProp> Locale(string locale)
+    {
+        var to = EnsureTemplateOptions();
+        var i18n = EnsureI18nOptions(to);
+        i18n = i18n with { Locale = locale };
+        to = to with { I18n = i18n };
+        _c = _c with { Props = to };
+        return this;
+    }
+
+    /// <summary>
+    /// Sets a translation key for validation messages by validator name.
+    /// </summary>
+    /// <param name="validator">The validator name</param>
+    /// <param name="translationKey">The translation key</param>
+    /// <returns>This builder instance for method chaining</returns>
+    public FieldBuilder<TModel, TProp> ValidationMessageKey(string validator, string translationKey)
+    {
+        var to = EnsureTemplateOptions();
+        var i18n = EnsureI18nOptions(to);
+        var messages = i18n.ValidationMessages ?? new Dictionary<string, string>();
+        messages[validator] = translationKey;
+        i18n = i18n with { ValidationMessages = messages };
+        to = to with { I18n = i18n };
+        _c = _c with { Props = to };
+        return this;
+    }
+
+    /// <summary>
+    /// Sets a custom translation key to the field.
+    /// </summary>
+    /// <param name="key">The translation property name</param>
+    /// <param name="translationKey">The translation key</param>
+    /// <returns>This builder instance for method chaining</returns>
+    public FieldBuilder<TModel, TProp> TranslationKey(string key, string translationKey)
+    {
+        var to = EnsureTemplateOptions();
+        var i18n = EnsureI18nOptions(to);
+        i18n.AdditionalTranslations[key] = translationKey;
+        to = to with { I18n = i18n };
+        _c = _c with { Props = to };
+        return this;
+    }
+    
+    /// <summary>
+    /// Ensures that I18n options exist, creating them if needed.
+    /// </summary>
+    /// <param name="templateOptions">The template options object</param>
+    /// <returns>The I18n options</returns>
+    private FormlyI18nOptions EnsureI18nOptions(FormlyFieldProps templateOptions)
+    {
+        var i18n = templateOptions.I18n ?? new FormlyI18nOptions();
+        return i18n;
+    }
+
+    /// <summary>
     /// Builds and returns the final FormlyFieldConfig.
     /// </summary>
     /// <returns>The configured FormlyFieldConfig</returns>
