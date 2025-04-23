@@ -174,6 +174,23 @@ public class FieldBuilder<TModel, TProp>
     }
 
     /// <summary>
+    /// Ensures that TemplateOptions exist, creating them if needed. Accessible to extensions.
+    /// </summary>
+    /// <returns>The TemplateOptions</returns>
+    public FormlyFieldProps GetTemplateOptions() => EnsureTemplateOptions();
+    
+    /// <summary>
+    /// Updates the field's template options with the provided options. Accessible to extensions.
+    /// </summary>
+    /// <param name="props">The template options to set</param>
+    /// <returns>This builder instance for method chaining</returns>
+    public FieldBuilder<TModel, TProp> WithProps(FormlyFieldProps props)
+    {
+        _c = _c with { Props = props };
+        return this;
+    }
+
+    /// <summary>
     /// Sets the label for the field.
     /// </summary>
     /// <param name="label">The label text</param>
