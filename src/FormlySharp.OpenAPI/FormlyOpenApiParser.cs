@@ -94,23 +94,23 @@ public class FormlyOpenApiParser
 
     private FormlyFieldConfig[] ParseFormlyExtension(IOpenApiExtension extension)
     {
-        if (extension is OpenApiArray arr)
-        {
-            // If it's an array, parse each item
-            var configs = new List<FormlyFieldConfig>();
-            foreach (var item in arr)
-            {
-                if (item is OpenApiObject obj)
-                {
-                    var config = new FormlyFieldConfig();
-                    // Parse the object as needed
-                    configs.Add(config);
-                }
-            }
-            return configs.ToArray();
+        //if (extension is OpenApiArray arr)
+        //{
+        //    // If it's an array, parse each item
+        //    var configs = new List<FormlyFieldConfig>();
+        //    foreach (var item in arr)
+        //    {
+        //        if (item is OpenApiObject obj)
+        //        {
+        //            var config = new FormlyFieldConfig();
+        //            // Parse the object as needed
+        //            configs.Add(config);
+        //        }
+        //    }
+        //    return configs.ToArray();
 
 
-        }
+        //}
 
         // Parse the custom extension which should contain Formly configuration
         if (extension is OpenApiObject obj)

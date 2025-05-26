@@ -1,0 +1,206 @@
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+namespace FormlySharp
+{
+    /// <summary>
+    /// Mirrors Angular Formly's FormlyFieldConfig: https://formly.dev/docs/api/core/#formlyfieldconfig
+    /// </summary>
+    public record FormlyFieldConfig
+    {
+        [JsonPropertyName("key")]           public object? Key { get; init; }
+        [JsonPropertyName("id")]            public string? Id { get; init; }
+        [JsonPropertyName("name")]          public string? Name { get; init; }
+        [JsonPropertyName("className")]     public string? ClassName { get; init; }
+        [JsonPropertyName("fieldGroupClassName")] public string? FieldGroupClassName { get; init; }
+        [JsonPropertyName("type")]          public string? Type { get; init; }
+        [JsonPropertyName("defaultValue")]  public object? DefaultValue { get; init; }
+        [JsonPropertyName("template")]      public string? Template { get; init; }
+        [JsonPropertyName("templateOptions")] public FormlyTemplateOptions? TemplateOptions { get; init; }
+        [JsonPropertyName("props")]         public Dictionary<string, object>? Props { get; init; }
+        [JsonPropertyName("validators")]    public Dictionary<string, object>? Validators { get; init; }
+        [JsonPropertyName("asyncValidators")] public Dictionary<string, object>? AsyncValidators { get; init; }
+        [JsonPropertyName("validation")]    public FormlyValidationOptions? Validation { get; init; }
+        [JsonPropertyName("expressionProperties")] public Dictionary<string, object>? ExpressionProperties { get; init; }
+        [JsonPropertyName("hide")]          public bool? Hide { get; init; }
+        [JsonPropertyName("hideExpression")] public object? HideExpression { get; init; }
+        [JsonPropertyName("wrappers")]      public string[]? Wrappers { get; init; }
+        [JsonPropertyName("focus")]         public bool? Focus { get; init; }
+        [JsonPropertyName("modelOptions")]  public FormlyModelOptions? ModelOptions { get; init; }
+        [JsonPropertyName("hooks")]         public FormlyLifecycleOptions? Hooks { get; init; }
+        [JsonPropertyName("lifecycle")]     public FormlyLifecycleOptions? Lifecycle { get; init; }
+        [JsonPropertyName("fieldGroup")]    public FormlyFieldConfig[]? FieldGroup { get; init; }
+        [JsonPropertyName("fieldArray")]    public FormlyFieldConfig? FieldArray { get; init; }
+        [JsonPropertyName("parsers")]       public List<string>? Parsers { get; init; }
+    }
+
+    public record FormlyTemplateOptions
+    {
+        [JsonPropertyName("label")]         public string? Label { get; init; }
+        [JsonPropertyName("placeholder")]   public string? Placeholder { get; init; }
+        [JsonPropertyName("description")]   public string? Description { get; init; }
+        [JsonPropertyName("required")]      public bool? Required { get; init; }
+        [JsonPropertyName("disabled")]      public bool? Disabled { get; init; }
+        [JsonPropertyName("min")]           public object? Min { get; init; }
+        [JsonPropertyName("max")]           public object? Max { get; init; }
+        [JsonPropertyName("minLength")]     public int? MinLength { get; init; }
+        [JsonPropertyName("maxLength")]     public int? MaxLength { get; init; }
+        [JsonPropertyName("pattern")]       public string? Pattern { get; init; }
+        [JsonPropertyName("options")]       public IEnumerable<object>? Options { get; init; }
+        [JsonPropertyName("rows")]          public int? Rows { get; init; }
+        [JsonPropertyName("cols")]          public int? Cols { get; init; }
+        [JsonPropertyName("tabindex")]      public int? TabIndex { get; init; }
+        [JsonPropertyName("readonly")]      public bool? ReadOnly { get; init; }
+        [JsonPropertyName("step")]          public object? Step { get; init; }
+        [JsonPropertyName("focus")]         public string? OnFocus { get; init; }
+        [JsonPropertyName("blur")]          public string? OnBlur { get; init; }
+        [JsonPropertyName("change")]        public string? OnChange { get; init; }
+        [JsonPropertyName("keyup")]         public string? OnKeyUp { get; init; }
+        [JsonPropertyName("keydown")]       public string? OnKeyDown { get; init; }
+        [JsonPropertyName("keypress")]      public string? OnKeyPress { get; init; }
+        [JsonPropertyName("click")]         public string? OnClick { get; init; }
+    }
+
+    public record FormlyModelOptions
+    {
+        [JsonPropertyName("debounce")]      public int? Debounce { get; init; }
+        [JsonPropertyName("updateOn")]      public string? UpdateOn { get; init; }
+    }
+
+    public record FormlyValidationOptions
+    {
+        [JsonPropertyName("messages")]      public Dictionary<string, string>? Messages { get; init; }
+        [JsonPropertyName("show")]          public bool? Show { get; init; }
+    }
+
+    public record FormlyLifecycleOptions
+    {
+        [JsonPropertyName("onInit")]        public string? OnInit { get; init; }
+        [JsonPropertyName("onChanges")]     public string? OnChanges { get; init; }
+        [JsonPropertyName("afterContentInit")] public string? AfterContentInit { get; init; }
+        [JsonPropertyName("afterViewInit")] public string? AfterViewInit { get; init; }
+        [JsonPropertyName("onDestroy")]     public string? OnDestroy { get; init; }
+    }
+
+    public static class FormlyBuilder
+    {
+        public static FormlyBuilder<T> For<T>() => new();
+    }
+
+    public class FormlyBuilder<T>
+    {
+        private readonly List<FormlyFieldConfig> _fields = new();
+
+        /// <summary>
+        /// Define a primitive or simple field.
+        /// </summary>
+        public FormlyBuilder<T> Field<TProp>(
+            Expression<Func<T, TProp>> expr,
+            Action<FieldBuilder<T, TProp>> configure)
+        {
+            if (expr.Body is not MemberExpression m)
+                throw new ArgumentException("Must use a member expression", nameof(expr));
+            var key = m.Member.Name;
+            var fb = new FieldBuilder<T, TProp>(key);
+            configure(fb);
+            _fields.Add(fb.Build());
+            return this;
+        }
+
+        /// <summary>
+        /// Define nested fields for a complex object property.
+        /// </summary>
+        public FormlyBuilder<T> FieldGroup<TNested>(
+            Expression<Func<T, TNested>> expr,
+            Action<FormlyBuilder<TNested>> configure)
+        {
+            if (expr.Body is not MemberExpression m)
+                throw new ArgumentException("Must use a member expression", nameof(expr));
+            var key = m.Member.Name;
+            var nested = new FormlyBuilder<TNested>();
+            configure(nested);
+            _fields.Add(new FormlyFieldConfig { Key = key, FieldGroup = nested.Build() });
+            return this;
+        }
+
+        /// <summary>
+        /// Define nested fields for an array of objects.
+        /// </summary>
+        public FormlyBuilder<T> FieldArray<TNested>(
+            Expression<Func<T, TNested[]>> expr,
+            Action<FormlyBuilder<TNested>> configure)
+        {
+            if (expr.Body is not MemberExpression m)
+                throw new ArgumentException("Must use a member expression", nameof(expr));
+            var key = m.Member.Name;
+            var nested = new FormlyBuilder<TNested>();
+            configure(nested);
+            _fields.Add(new FormlyFieldConfig
+            {
+                Key = key,
+                FieldArray = new FormlyFieldConfig { FieldGroup = nested.Build() }
+            });
+            return this;
+        }
+
+        public FormlyFieldConfig[] Build() => _fields.ToArray();
+
+        public string BuildJson(JsonSerializerOptions? opts = null) =>
+           (JsonSerializer.Serialize(_fields,
+                opts ?? new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+    }
+
+    public class FieldBuilder<TModel, TProp>
+    {
+        private FormlyFieldConfig _c;
+        public FieldBuilder(string key) => _c = new() { Key = key };
+
+        public FieldBuilder<TModel, TProp> Id(string id)       { _c = _c with { Id = id }; return this; }
+        public FieldBuilder<TModel, TProp> Name(string name)   { _c = _c with { Name = name }; return this; }
+        public FieldBuilder<TModel, TProp> ClassName(string css){ _c = _c with { ClassName = css }; return this; }
+        public FieldBuilder<TModel, TProp> FieldGroupClassName(string css) { _c = _c with { FieldGroupClassName = css }; return this; }
+        public FieldBuilder<TModel, TProp> Type(string type)   { _c = _c with { Type = type }; return this; }
+        public FieldBuilder<TModel, TProp> DefaultValue(object? val) { _c = _c with { DefaultValue = val }; return this; }
+        public FieldBuilder<TModel, TProp> Template(string tpl) { _c = _c with { Template = tpl }; return this; }
+
+        private Dictionary<string, object> EnsureProps()
+        {
+            var p = _c.Props ?? new Dictionary<string, object>();
+            _c = _c with { Props = p };
+            return p;
+        }
+        public FieldBuilder<TModel, TProp> Prop(string key, object value) { var p = EnsureProps(); p[key] = value; return this; }
+
+        private Dictionary<string, object> EnsureValidators()
+        {
+            var v = _c.Validators ?? new Dictionary<string, object>();
+            _c = _c with { Validators = v };
+            return v;
+        }
+        public FieldBuilder<TModel, TProp> Validator(string name, object validator) { var v = EnsureValidators(); v[name] = validator; return this; }
+
+        private Dictionary<string, object> EnsureAsyncValidators()
+        {
+            var a = _c.AsyncValidators ?? new Dictionary<string, object>();
+            _c = _c with { AsyncValidators = a };
+            return a;
+        }
+        public FieldBuilder<TModel, TProp> AsyncValidator(string name, object validator) { var a = EnsureAsyncValidators(); a[name] = validator; return this; }
+
+        private FormlyValidationOptions EnsureValidation()
+        {
+            var vo = _c.Validation ?? new FormlyValidationOptions();
+            _c = _c with { Validation = vo };
+            return vo;
+        }
+        public FieldBuilder<TModel, TProp> ValidationMessage(string key, string message)
+        {
+            var vo = EnsureValidation();
+            var m = vo.Messages ?? new Dictionary<string, string>(); m[key] = message;
+            vo = vo with { Messages = m };
+            _c = _c with { Validation = vo };
+            return this;
+        }

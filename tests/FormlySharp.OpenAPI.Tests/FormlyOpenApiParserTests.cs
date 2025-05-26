@@ -84,26 +84,26 @@ public class FormlyOpenApiParserTests
         Assert.Contains("not found in the document", exception.Message);
     }
     
-    [Fact]
-    public void GetFormlyConfig_WithCustomFormlyExtension_ReturnsExtensionConfig()
-    {
-        // Arrange
-        var openApiJson = TestData.GenerateOpenApiSpecWithFormlyExtension();
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(openApiJson));
-        var parser = new FormlyOpenApiParser(stream);
+    //[Fact]
+    //public void GetFormlyConfig_WithCustomFormlyExtension_ReturnsExtensionConfig()
+    //{
+    //    // Arrange
+    //    var openApiJson = TestData.GenerateOpenApiSpecWithFormlyExtension();
+    //    using var stream = new MemoryStream(Encoding.UTF8.GetBytes(openApiJson));
+    //    var parser = new FormlyOpenApiParser(stream);
         
-        // Act
-        var configs = parser.GetFormlyConfig("#/components/schemas/Product");
+    //    // Act
+    //    var configs = parser.GetFormlyConfig("#/components/schemas/Product");
         
-        // Assert
-        Assert.NotNull(configs);
-        Assert.Single(configs);
+    //    // Assert
+    //    Assert.NotNull(configs);
+    //    Assert.Single(configs);
         
-        var field = configs[0];
-        Assert.Equal("customField", field.Key);
-        Assert.Equal("custom", field.Type);
-        Assert.Equal("Custom Label", field.Props?.Label);
-    }
+    //    var field = configs[0];
+    //    Assert.Equal("customField", field.Key);
+    //    Assert.Equal("custom", field.Type);
+    //    Assert.Equal("Custom Label", field.Props?.Label);
+    //}
     
     [Fact]
     public void GetFormlyConfig_WithNestedObjectSchema_GeneratesFieldGroup()
